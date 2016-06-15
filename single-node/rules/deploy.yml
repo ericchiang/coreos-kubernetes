@@ -1,0 +1,14 @@
+# This role binding allows "user1" to read secrets in the namespace "development"
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1alpha1
+metadata:
+  name: deploy
+  namespace: default # This binding only applies in the "default" namespace
+subject:
+  - kind: User # May be "User", "Group" or "ServiceAccount"
+    name: user1
+roleRef:
+  kind: Role
+  namespace: default
+  name: deployer
+  apiVersion: rbac.authorization.k8s.io/v1alpha1

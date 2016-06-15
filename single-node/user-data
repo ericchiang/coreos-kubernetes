@@ -126,6 +126,18 @@ spec:
 EOF
     }
 
+    local TEMPLATE=/etc/kubernetes/auth/tokenfile
+    [ -f $TEMPLATE ] || {
+        echo "TEMPLATE: $TEMPLATE"
+        mkdir -p $(dirname $TEMPLATE)
+        cat << EOF > $TEMPLATE
+admin,admin,0
+user1,user1,1
+user2,user2,2
+user3,user3,3
+EOF
+    }
+
     local TEMPLATE=/etc/kubernetes/manifests/kube-apiserver.yaml
     [ -f $TEMPLATE ] || {
         echo "TEMPLATE: $TEMPLATE"
@@ -140,10 +152,14 @@ spec:
   hostNetwork: true
   containers:
   - name: kube-apiserver
-    image: quay.io/coreos/hyperkube:$K8S_VER
+    image: quay.io/ericchiang/hyperkube-amd64:1.3.0-beta0
     command:
     - /hyperkube
     - apiserver
+    - --client-ca-file=/etc/kubernetes/ssl/ca.pem
+    - --token-auth-file=/etc/auth/tokenfile
+    - --authorization-rbac-super-user=admin
+    - --authorization-mode=RBAC
     - --bind-address=0.0.0.0
     - --etcd-servers=${ETCD_ENDPOINTS}
     - --allow-privileged=true
@@ -153,7 +169,6 @@ spec:
     - --admission-control=NamespaceLifecycle,LimitRanger,SecurityContextDeny,ServiceAccount,ResourceQuota
     - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
     - --tls-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
-    - --client-ca-file=/etc/kubernetes/ssl/ca.pem
     - --service-account-key-file=/etc/kubernetes/ssl/apiserver-key.pem
     - --runtime-config=extensions/v1beta1/deployments=true,extensions/v1beta1/daemonsets=true
     ports:
@@ -170,6 +185,9 @@ spec:
     - mountPath: /etc/ssl/certs
       name: ssl-certs-host
       readOnly: true
+    - mountPath: /etc/auth
+      name: k8s-auth
+      readOnly: true
   volumes:
   - hostPath:
       path: /etc/kubernetes/ssl
@@ -177,6 +195,9 @@ spec:
   - hostPath:
       path: /usr/share/ca-certificates
     name: ssl-certs-host
+  - hostPath:
+      path: /etc/kubernetes/auth
+    name: k8s-auth
 EOF
     }
 

@@ -1,0 +1,14 @@
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1alpha1
+metadata:
+  namespace: default
+  name: deployer
+rules:
+  - apiGroups: [""] # The API group "" indicates the default API Group.
+    resources: ["services", "pods"]
+    verbs: ["*"]
+    nonResourceURLs: []
+  - apiGroups: ["extensions"]
+    resources: ["deployments"]
+    verbs: ["*"]
+    nonResourceURLs: []

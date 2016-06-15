@@ -1,0 +1,21 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1alpha1
+metadata:
+  name: operator
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces", "resourcequotas"]
+    verbs: ["*"]
+    nonResourceURLs: []
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1alpha1
+metadata:
+  name: operator
+subject:
+  - kind: User
+    name: user3
+roleRef:
+  kind: ClusterRole
+  name: operator
+  apiVersion: rbac.authorizer.k8s.io/v1alpha1
